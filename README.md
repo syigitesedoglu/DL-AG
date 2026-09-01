@@ -1,23 +1,25 @@
 # Dual-Layer Adversarial Guard (DL-AG)
 
-Private repo — makale deneyleri, 5-seed protokolü ve reviewer suite.
+Private repository for paper experiments, the 5-seed protocol, and the reviewer suite.
 
 **GitHub:** https://github.com/syigitesedoglu/DL-AG (private)
 
 ---
 
-## Hızlı başlangıç
+## Quick start
+
+Run all commands from the **repository root**.
 
 ```bash
 pip install -r requirements_dlag.txt
 
-# 1) Augment edilmiş SST-2 çiftlerini üret (bir kez)
+# 1) Build augmented SST-2 pairs (once)
 python scripts/data/augment_data.py
 
-# 2) Paper protokolü — 5 seed train + eval
+# 2) Paper protocol — 5-seed train + eval
 python scripts/multiseed/run_5seed_full.py
 
-# 3) Tüm reviewer paketi (DL-AG + baseline + ablation + istatistik)
+# 3) Full reviewer pipeline (DL-AG + baselines + ablations + stats)
 python scripts/multiseed/run_reviewer_suite.py
 ```
 
@@ -25,124 +27,126 @@ Colab: `notebooks/DLAG_reviewer_5seed_colab.ipynb`
 
 ---
 
-## Klasör yapısı
+## Repository layout
 
 ```
 DL-AG/
-├── dlag/                          # Çekirdek Python paketi
+├── dlag/                          # Core Python package
 ├── scripts/
-│   ├── data/                      # Veri hazırlama
-│   ├── training/                  # Model eğitimi
-│   ├── evaluation/                # Test & metrik
-│   ├── multiseed/                 # Orkestrasyon (5 seed)
-│   └── ablations/                 # Tablo/ablation deneyleri
-├── data/                          # Statik veri (dev.json, üretilen CSV)
-├── notebooks/                     # Colab notebookları
-├── models/                        # Checkpoint (gitignore)
-├── multiseed_results_full/        # JSON sonuçlar (gitignore)
-├── repo_paths.py                  # Tüm yollar burada
+│   ├── data/                      # Data preparation
+│   ├── training/                  # Model training
+│   ├── evaluation/                # Testing & metrics
+│   ├── multiseed/                 # Orchestration (5 seeds)
+│   └── ablations/                 # Table / ablation experiments
+├── data/                          # Static data (dev.json, generated CSV)
+├── notebooks/                     # Colab notebooks
+├── models/                        # Checkpoints (gitignored)
+├── multiseed_results_full/        # JSON results (gitignored)
+├── repo_paths.py                  # Shared path constants
 └── requirements_dlag.txt
 ```
 
 ---
 
-## `dlag/` — çekirdek paket
+## `dlag/` — core package
 
-| Dosya | Ne yapar |
-|--------|-----------|
-| `layer1.py` | Katman 1: Levenshtein + LM skoru ile karakter/gürültü onarımı |
-| `ard.py` | Katman 2: ARD kaybı, feature projector, KL + hizalama |
-| `attacks.py` | TextFooler, DeepWordBug, Pruthi vb. saldırı üretimi |
-| `data.py` | AdvGLUE yükleme, ARD pair dataset, IMDB karışımı |
-| `utils.py` | Seed, device, yardımcılar |
+| File | Role |
+|------|------|
+| `layer1.py` | Layer 1: character/noise repair via Levenshtein search + LM score |
+| `ard.py` | Layer 2: ARD loss, feature projector, KL + alignment |
+| `attacks.py` | Adversarial example generation (TextFooler, DeepWordBug, Pruthi, …) |
+| `data.py` | AdvGLUE loading, ARD pair dataset, IMDB mixing |
+| `utils.py` | Seeding, device helpers, utilities |
 
 ---
 
 ## `scripts/data/`
 
-| Script | Ne yapar | Çıktı |
-|--------|-----------|--------|
-| `augment_data.py` | SST-2 train üzerinde TextAttack embedding augment | `data/sst2_augmented.csv` |
+| Script | Purpose | Output |
+|--------|---------|--------|
+| `augment_data.py` | TextAttack embedding augmentation on SST-2 train | `data/sst2_augmented.csv` |
 
 ---
 
 ## `scripts/training/`
 
-| Script | Ne yapar | Checkpoint |
-|--------|-----------|------------|
-| `train_ard.py` | **Ana paper yolu.** Teacher=clean, student=adv, ARD + Layer1 opsiyonel | `models/dl_ag_student_distilbert/seed_{N}/` |
-| `train_mixed_balanced.py` | **Eski/legacy yol.** AdvGLUE + IMDB karışık KD | `dl_ag_balanced_model/seed_{N}/` |
+| Script | Purpose | Checkpoints |
+|--------|---------|-------------|
+| `train_ard.py` | **Main paper path.** Teacher on clean text, student on adv text; ARD + optional Layer 1 | `models/dl_ag_student_distilbert/seed_{N}/` |
+| `train_mixed_balanced.py` | **Legacy path.** Mixed AdvGLUE + IMDB knowledge distillation | `dl_ag_balanced_model/seed_{N}/` |
 
-Paper ve 5-seed suite **`train_ard.py`** kullanır.
+The paper and 5-seed suite use **`train_ard.py`**.
 
 ---
 
 ## `scripts/evaluation/`
 
-| Script | Ne yapar |
-|--------|-----------|
-| `evaluator.py` | Paper evaluator: saldırılar + Layer1 + student, RA/ASR/latency JSON |
-| `final_validation.py` | Legacy balanced model için AdvGLUE + IMDB doğrulama |
+| Script | Purpose |
+|--------|---------|
+| `evaluator.py` | Paper evaluator: attacks → Layer 1 → student; writes RA / ASR / latency JSON |
+| `final_validation.py` | Legacy validation for the balanced model (AdvGLUE + IMDB) |
 
 ---
 
 ## `scripts/multiseed/`
 
-| Script | Ne yapar |
-|--------|-----------|
-| `run_5seed_full.py` | 5 seed (42–46): `train_ard` → `evaluator`, mean±std özeti |
+| Script | Purpose |
+|--------|---------|
+| `run_5seed_full.py` | 5 seeds (42–46): `train_ard` → `evaluator`, mean ± std summary |
 | `run_5seed.py` | Legacy: `train_mixed_balanced` → `final_validation` |
-| `run_reviewer_suite.py` | Sırayla: 5-seed DL-AG → baselines → PKD → Tablo9 → t-test |
+| `run_reviewer_suite.py` | Full pipeline: 5-seed DL-AG → baselines → PKD → Table 9 → t-tests |
 
-**Reviewer suite sırası:**
-1. DL-AG (run_5seed_full)
-2. BERT / DistilBERT baseline (baselines_3seed)
-3. PKD ablation (pkd_ablation_3seed)
-4. L1 / L2 / Hybrid ablation (table9_ablation_3seed)
-5. Welch t-test + CI (stats_tests)
+**Reviewer suite order:**
+1. DL-AG (`run_5seed_full`)
+2. BERT-Base / DistilBERT baselines (`baselines_3seed`)
+3. PKD ablation (`pkd_ablation_3seed`)
+4. L1 / L2 / Hybrid ablation (`table9_ablation_3seed`)
+5. Welch t-test + 95% CI (`stats_tests`)
 
-Colab'da Drive için: `--drive-root /content/drive/MyDrive/...`
+On Colab with Google Drive: `--drive-root /content/drive/MyDrive/...`
 
 ---
 
 ## `scripts/ablations/`
 
-| Script | Makaledeki karşılık |
-|--------|---------------------|
-| `baselines_3seed.py` | Tablo 11 — BERT-Base & DistilBERT fine-tune |
-| `pkd_ablation_3seed.py` | Tablo 10 — Logit-Only vs PKD-Skip |
-| `table9_ablation_3seed.py` | Tablo 9 — L1-only / L2-only / Hybrid |
-| `stats_tests.py` | Reviewer istatistikleri (Welch, 95% CI) |
+| Script | Paper reference |
+|--------|-----------------|
+| `baselines_3seed.py` | Table 11 — BERT-Base & DistilBERT fine-tuning |
+| `pkd_ablation_3seed.py` | Table 10 — Logit-Only vs PKD-Skip |
+| `table9_ablation_3seed.py` | Table 9 — L1-only / L2-only / Hybrid |
+| `stats_tests.py` | Reviewer statistics (Welch t-test, 95% CI) |
 
 ---
 
 ## `data/`
 
-| Dosya | Açıklama |
-|--------|-----------|
-| `dev.json` | AdvGLUE dev split (SST-2 vb.) — repo içinde |
-| `sst2_augmented.csv` | `augment_data.py` çıktısı — **gitignore**, yerelde üretilir |
+| File | Description |
+|------|-------------|
+| `dev.json` | AdvGLUE dev split (SST-2, etc.) — tracked in git |
+| `sst2_augmented.csv` | Output of `augment_data.py` — **gitignored**, generated locally |
+
+See also `data/README.md`.
 
 ---
 
-## Gitignore (repo dışı kalır)
+## Gitignored artifacts
 
-- `models/`, `dl_ag_*_model/` — checkpoint
-- `multiseed_results/`, `multiseed_results_full/` — JSON sonuçlar
-- `data/*.csv` — büyük augment dosyası
-- `*.pt`, `*.zip`, internal notlar
+- `models/`, `dl_ag_*_model/` — model checkpoints
+- `multiseed_results/`, `multiseed_results_full/` — experiment JSON outputs
+- `data/*.csv` — large augmented dataset
+- `*.pt`, `*.zip`, internal notes
 
 ---
 
 ## Upstream
 
 AdvGLUE benchmark: https://github.com/AI-secure/adversarial-glue  
-Remote adı: `upstream` (push etme, sadece referans)
+Git remote: `upstream` (reference only — do not push there)
 
 ---
 
-## Notlar
+## Notes
 
-- Tüm scriptler repo kökünden çalıştırılmalı (`cwd` = repo root); yollar `repo_paths.py` üzerinden.
-- Makale kabulünden sonra repo public yapılabilir (data availability ile uyumlu).
-- Hoca erişimi: GitHub → Settings → Collaborators.
+- Run scripts from the repo root; paths are resolved via `repo_paths.py`.
+- The repo can be made public after paper acceptance (aligned with our data-availability statement).
+- Collaborator access: GitHub → Settings → Collaborators.
