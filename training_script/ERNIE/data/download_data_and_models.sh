@@ -1,3 +1,0 @@
-python download_glue_data.py
-python download_base_model.py
-python download_large_model.py

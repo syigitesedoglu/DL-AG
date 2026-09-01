@@ -1,6 +1,6 @@
 # Dual-Layer Adversarial Guard (DL-AG)
 
-Private research code for adversarial robustness in NLP (DistilBERT student + Layer-1 text repair).
+Private research code for adversarial robustness in NLP.
 
 ## Setup
 
@@ -8,46 +8,37 @@ Private research code for adversarial robustness in NLP (DistilBERT student + La
 pip install -r requirements_dlag.txt
 ```
 
-## Core package
-
-- `dlag/` — Layer 1 repair, attacks, ARD helpers, data utilities
-
-## Training
-
-- `train_ard.py` — Layer 2 robust distillation (ARD)
-- `train_mixed_balanced.py` — balanced mixed training
-- `train_layer2.py`, `train_distillation.py` — alternate training paths
-
-## Evaluation
-
-- `evaluator.py`, `final_validation.py`, `advglue_evaluate.py`
-- `evaluate_dlag_final.py`, `evaluate_adaptive_dlag.py`
-
-## Multi-seed (5 seeds: 42–46)
-
-Paper / reviewer protocol:
+Generate augmented training pairs (once):
 
 ```bash
-# Full DL-AG pipeline per seed (train + eval)
-python run_5seed_full.py
-
-# Lighter 5-seed runner (balanced model path)
-python run_5seed.py
-
-# Entire reviewer suite (DL-AG + baselines + ablations + stats)
-python run_reviewer_suite.py
-
-# Individual pieces
-python baselines_3seed.py
-python pkd_ablation_3seed.py
-python table9_ablation_3seed.py
-python stats_tests.py
+python augment_data.py
 ```
 
-Colab: `DLAG_reviewer_5seed_colab.ipynb`, `run_colab_3seed_drive.py`
+## Layout
 
-Checkpoints are written under `models/` (gitignored). Copy to Drive on Colab with `--save-root` / `--drive-root` flags in the runner scripts.
+| Path | Role |
+|------|------|
+| `dlag/` | Layer 1 purifier, attacks, ARD training helpers |
+| `train_ard.py` | Layer 2 robust distillation |
+| `evaluator.py` | Paper-protocol evaluation (attacks + AdvGLUE) |
+| `run_5seed_full.py` | 5-seed train + eval (seeds 42–46) |
+| `run_reviewer_suite.py` | Full reviewer pipeline (DL-AG + baselines + ablations + stats) |
+
+## Multi-seed / reviewer protocol
+
+```bash
+python run_5seed_full.py
+python run_reviewer_suite.py
+```
+
+Individual steps: `baselines_3seed.py`, `pkd_ablation_3seed.py`, `table9_ablation_3seed.py`, `stats_tests.py`
+
+Legacy balanced-training path: `run_5seed.py` (uses `train_mixed_balanced.py` + `final_validation.py`)
+
+Colab: `DLAG_reviewer_5seed_colab.ipynb`
+
+Checkpoints under `models/` and results under `multiseed_results_full/` are gitignored.
 
 ## Upstream
 
-Based on the public [AdvGLUE](https://github.com/AI-secure/adversarial-glue) benchmark (`upstream` remote).
+AdvGLUE benchmark: https://github.com/AI-secure/adversarial-glue (`upstream` remote)

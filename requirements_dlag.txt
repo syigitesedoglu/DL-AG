@@ -11,3 +11,5 @@ editdistance
 wordfreq
 pyspellchecker
 textattack>=0.3.9
+scipy
+textblob
