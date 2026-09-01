@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Table 11 baselines: fine-tune BERT-Base and DistilBERT for 3 seeds, eval on AdvGLUE.
-
-Gives matched multi-seed mean±std for fair comparison vs DL-AG.
-"""
+"""Table 11 baselines: fine-tune BERT-Base and DistilBERT for 3 seeds, eval on AdvGLUE."""
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
+
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
 
 import numpy as np
 import torch
@@ -23,6 +23,9 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from dlag.data import load_advglue_task
 from dlag.utils import get_device, set_seed
+from repo_paths import ensure_import_path
+
+ensure_import_path()
 
 SEEDS = [42, 43, 44]
 

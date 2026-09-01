@@ -20,6 +20,7 @@ checkpoint-*/
 # Experiment outputs
 multiseed_results/
 multiseed_results_full/
+data/*.csv
 *.csv
 predictions.json
 *_scores.json

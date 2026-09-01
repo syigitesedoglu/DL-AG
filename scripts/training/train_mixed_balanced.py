@@ -17,23 +17,32 @@ import argparse
 import json
 import os
 import random
+import sys
+from pathlib import Path
+
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from torch.optim import AdamW
-from textblob import TextBlob
 from datasets import load_dataset
+from textblob import TextBlob
+from torch.optim import AdamW
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+from repo_paths import ADVGLUE_DEV_JSON, MODELS_BALANCED, ensure_import_path
+
+ensure_import_path()
 
 # --- AYARLAR ---
 TEACHER_MODEL_NAME = "textattack/roberta-base-SST-2"
 STUDENT_MODEL_NAME = "distilbert-base-uncased"
-ADV_DATA_PATH = "dev.json"
-SAVE_ROOT = "./dl_ag_balanced_model"
+ADV_DATA_PATH = str(ADVGLUE_DEV_JSON)
+SAVE_ROOT = str(MODELS_BALANCED)
 
 # Ryzen Dostu Ayarlar (CPU'yu patlatmayalım ama işe yarasın)
 BATCH_SIZE = 16

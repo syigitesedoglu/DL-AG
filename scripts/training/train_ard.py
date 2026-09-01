@@ -14,7 +14,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
+
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
 
 import torch
 from torch.optim import AdamW
@@ -26,6 +30,9 @@ from dlag.ard import FeatureProjector, ard_total_loss, default_layer_map
 from dlag.data import ARDPairDataset, mix_imdb_clean, pairs_from_augmented_csv
 from dlag.layer1 import Layer1Purifier
 from dlag.utils import get_device, make_generator, set_seed
+from repo_paths import AUGMENTED_CSV, MODELS_DLAG_STUDENT, ensure_import_path
+
+ensure_import_path()
 
 
 def parse_args():
@@ -38,7 +45,7 @@ def parse_args():
         help="Paper uses RoBERTa-Large SST-2 teacher. Override with a large HF SST-2 checkpoint on GPU.",
     )
     p.add_argument("--student", type=str, default="distilbert-base-uncased")
-    p.add_argument("--augmented-csv", type=str, default="sst2_augmented.csv")
+    p.add_argument("--augmented-csv", type=str, default=str(AUGMENTED_CSV))
     p.add_argument("--imdb-clean", type=int, default=2000, help="Extra clean IMDB rows (forgetting control)")
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--batch-size", type=int, default=8)
@@ -51,7 +58,7 @@ def parse_args():
     p.add_argument("--purify-train-adv", action="store_true", help="Run Layer1 on adv texts during training")
     p.add_argument("--align-weight", type=float, default=0.1)
     p.add_argument("--out", type=str, default=None)
-    p.add_argument("--save-root", type=str, default="./models/dl_ag_student_distilbert")
+    p.add_argument("--save-root", type=str, default=str(MODELS_DLAG_STUDENT))
     p.add_argument(
         "--fresh",
         action="store_true",
@@ -109,7 +116,7 @@ def main():
 
     if not Path(args.augmented_csv).exists():
         raise FileNotFoundError(
-            f"Missing {args.augmented_csv}. Run augment_data.py first or point --augmented-csv."
+            f"Missing {args.augmented_csv}. Run: python scripts/data/augment_data.py"
         )
 
     pairs = pairs_from_augmented_csv(args.augmented_csv)

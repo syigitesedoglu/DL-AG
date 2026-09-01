@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Multi-seed orchestration for paper-protocol DL-AG (default: 3 seeds).
+Multi-seed orchestration for paper-protocol DL-AG (5 seeds: 42–46).
 
 Per seed:
-  1) train_ard.py  -> models/dl_ag_student_distilbert/seed_{SEED}
-  2) evaluator.py  -> multiseed_results_full/seed_{SEED}_*.json
-
-Epoch checkpoints + auto-resume are handled by train_ard.py.
-Prefer --save-root / --results-dir on Google Drive for Colab disconnect safety.
+  1) scripts/training/train_ard.py
+  2) scripts/evaluation/evaluator.py
 """
 from __future__ import annotations
 
@@ -20,16 +17,30 @@ import subprocess
 import sys
 from pathlib import Path
 
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
+
 import numpy as np
 
-ROOT = Path(__file__).resolve().parent
-SEEDS = [42, 43, 44, 45, 46]  # reviewer multi-seed (5)
-RESULTS = ROOT / "multiseed_results_full"
-MODEL_ROOT = ROOT / "models" / "dl_ag_student_distilbert"
+from repo_paths import (
+    MODELS_DLAG_STUDENT,
+    REPO_ROOT,
+    RESULTS_FULL,
+    SCRIPT_EVALUATOR,
+    SCRIPT_TRAIN_ARD,
+    ensure_import_path,
+)
+
+ensure_import_path()
+
+SEEDS = [42, 43, 44, 45, 46]
+ROOT = REPO_ROOT
+RESULTS = RESULTS_FULL
+MODEL_ROOT = MODELS_DLAG_STUDENT
 
 
 def run(cmd):
-    print("\n>>>", " ".join(cmd), flush=True)
+    print("\n>>>", " ".join(str(c) for c in cmd), flush=True)
     subprocess.run(cmd, cwd=str(ROOT), check=True)
 
 
@@ -182,7 +193,7 @@ def main():
             else:
                 cmd = [
                     py,
-                    "train_ard.py",
+                    str(SCRIPT_TRAIN_ARD),
                     "--seed",
                     str(seed),
                     "--epochs",
@@ -217,7 +228,7 @@ def main():
         else:
             cmd = [
                 py,
-                "evaluator.py",
+                str(SCRIPT_EVALUATOR),
                 "--seed",
                 str(seed),
                 "--model-path",

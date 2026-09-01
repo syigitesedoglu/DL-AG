@@ -1,15 +1,23 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Dec  8 21:49:44 2025
+"""Build adversarial-augmented SST-2 CSV for ARD training."""
 
-@author: yigit
-"""
+from __future__ import annotations
+
+import sys
+import time
+from pathlib import Path
+
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
 
 import pandas as pd
 from datasets import load_dataset
 from textattack.augmentation import EmbeddingAugmenter
 from tqdm import tqdm
-import time
+
+from repo_paths import AUGMENTED_CSV, DATA_DIR, ensure_import_path
+
+ensure_import_path()
 
 DATASET_NAME = "glue"
 TASK = "sst2"
@@ -53,10 +61,10 @@ def main():
     print(f"Büyütme Tamamlandı. Süre: {end_time - start_time:.2f} saniye.")
     print(f"Yeni Veri Seti Boyutu: {len(augmented_sentences)}")
 
-    # Veriyi Kaydet (CSV olarak)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame({'sentence': augmented_sentences, 'label': augmented_labels})
-    df.to_csv('sst2_augmented.csv', index=False)
-    print("--- 3. Veri 'sst2_augmented.csv' olarak kaydedildi. ---")
+    df.to_csv(AUGMENTED_CSV, index=False)
+    print(f"--- 3. Veri '{AUGMENTED_CSV.name}' olarak kaydedildi ({AUGMENTED_CSV}). ---")
 
 if __name__ == '__main__':
     main()

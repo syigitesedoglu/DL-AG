@@ -15,17 +15,26 @@ Hedef: AdvGLUE > %50  VE  IMDB > %80
 import argparse
 import json
 import os
+import sys
+from pathlib import Path
+
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
 
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_dataset
-from textblob import TextBlob
 from sklearn.metrics import accuracy_score
+from textblob import TextBlob
 from tqdm import tqdm
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+from repo_paths import ADVGLUE_DEV_JSON, MODELS_BALANCED, ensure_import_path
+
+ensure_import_path()
 
 # --- AYARLAR ---
-MODEL_PATH = "./dl_ag_balanced_model"
-ADV_DATA_PATH = "dev.json"
+MODEL_PATH = str(MODELS_BALANCED)
+ADV_DATA_PATH = str(ADVGLUE_DEV_JSON)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def layer1_defense(text):

@@ -15,9 +15,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
 from typing import Dict
+
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
 
 import torch
 from sklearn.metrics import accuracy_score
@@ -28,6 +32,9 @@ from dlag.attacks import AttackNotAvailable, build_attacks, generate_adversarial
 from dlag.data import load_advglue_task
 from dlag.layer1 import Layer1Purifier
 from dlag.utils import get_device, set_seed
+from repo_paths import ensure_import_path
+
+ensure_import_path()
 
 
 def parse_args():

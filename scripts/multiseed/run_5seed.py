@@ -1,31 +1,42 @@
 # -*- coding: utf-8 -*-
 """
-DL-AG 5-seed runner
-Seeds: 42, 43, 44, 45, 46
+Legacy 5-seed runner (balanced mixed training path).
 
-Her seed için:
-  1) train_mixed_balanced.py  -> ./dl_ag_balanced_model/seed_{SEED}
-  2) final_validation.py      -> ./multiseed_results/seed_{SEED}.json
-
-Bitince mean±std özetini basar.
+Per seed:
+  1) scripts/training/train_mixed_balanced.py
+  2) scripts/evaluation/final_validation.py
 """
+from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
 
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
+
 import numpy as np
 
+from repo_paths import (
+    MODELS_BALANCED,
+    REPO_ROOT,
+    RESULTS_LEGACY,
+    SCRIPT_FINAL_VALIDATION,
+    SCRIPT_TRAIN_BALANCED,
+    ensure_import_path,
+)
+
+ensure_import_path()
+
 SEEDS = [42, 43, 44, 45, 46]
-ROOT = Path(__file__).resolve().parent
-RESULTS_DIR = ROOT / "multiseed_results"
+ROOT = REPO_ROOT
+RESULTS_DIR = RESULTS_LEGACY
 
 
 def run_cmd(cmd):
-    print("\n>>>", " ".join(cmd), flush=True)
+    print("\n>>>", " ".join(str(c) for c in cmd), flush=True)
     subprocess.run(cmd, cwd=str(ROOT), check=True)
 
 
@@ -66,18 +77,22 @@ def main():
     collected = []
 
     for seed in args.seeds:
-        model_dir = ROOT / "dl_ag_balanced_model" / f"seed_{seed}"
+        model_dir = MODELS_BALANCED / f"seed_{seed}"
         result_path = RESULTS_DIR / f"seed_{seed}.json"
 
         if not args.skip_train:
-            run_cmd([py, "train_mixed_balanced.py", "--seed", str(seed)])
+            run_cmd([py, str(SCRIPT_TRAIN_BALANCED), "--seed", str(seed)])
 
         if not args.skip_eval:
             run_cmd([
-                py, "final_validation.py",
-                "--seed", str(seed),
-                "--model-path", str(model_dir),
-                "--out", str(result_path),
+                py,
+                str(SCRIPT_FINAL_VALIDATION),
+                "--seed",
+                str(seed),
+                "--model-path",
+                str(model_dir),
+                "--out",
+                str(result_path),
             ])
 
         if result_path.exists():

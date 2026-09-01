@@ -9,9 +9,6 @@ Order:
   3) PKD Logit-Only vs Skip    (pkd_ablation_3seed.py)
   4) Table-9 L1/L2/Hybrid      (table9_ablation_3seed.py)
   5) t-tests / CIs             (stats_tests.py)
-
-Use --skip-dlag if DL-AG seeds already finished.
-Use --drive-root on Colab so checkpoints survive disconnects.
 """
 from __future__ import annotations
 
@@ -21,14 +18,31 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+_REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO))
+
+from repo_paths import (
+    MODELS_DLAG_STUDENT,
+    REPO_ROOT,
+    RESULTS_FULL,
+    SCRIPT_BASELINES,
+    SCRIPT_PKD,
+    SCRIPT_RUN_5SEED_FULL,
+    SCRIPT_STATS,
+    SCRIPT_TABLE9,
+    ensure_import_path,
+)
+
+ensure_import_path()
+
 SEEDS = [42, 43, 44, 45, 46]
-RESULTS = ROOT / "multiseed_results_full"
-DLAG_ROOT = ROOT / "models" / "dl_ag_student_distilbert"
+ROOT = REPO_ROOT
+RESULTS = RESULTS_FULL
+DLAG_ROOT = MODELS_DLAG_STUDENT
 
 
 def run(cmd):
-    print("\n>>>", " ".join(cmd), flush=True)
+    print("\n>>>", " ".join(str(c) for c in cmd), flush=True)
     subprocess.run(cmd, cwd=str(ROOT), check=True)
 
 
@@ -92,7 +106,7 @@ def main():
     elif not args.skip_dlag:
         cmd = [
             py,
-            "run_5seed_full.py",
+            str(SCRIPT_RUN_5SEED_FULL),
             "--seeds",
             *[str(s) for s in seeds],
             "--epochs",
@@ -122,7 +136,7 @@ def main():
 
     run([
         py,
-        "baselines_3seed.py",
+        str(SCRIPT_BASELINES),
         "--seeds",
         *[str(s) for s in seeds],
         "--out",
@@ -130,7 +144,7 @@ def main():
     ])
     run([
         py,
-        "pkd_ablation_3seed.py",
+        str(SCRIPT_PKD),
         "--seeds",
         *[str(s) for s in seeds],
         "--out",
@@ -138,7 +152,7 @@ def main():
     ])
     run([
         py,
-        "table9_ablation_3seed.py",
+        str(SCRIPT_TABLE9),
         "--seeds",
         *[str(s) for s in seeds],
         "--dlag-root",
@@ -148,7 +162,7 @@ def main():
     ])
     run([
         py,
-        "stats_tests.py",
+        str(SCRIPT_STATS),
         "--results-dir",
         str(results_dir),
         "--baselines",
