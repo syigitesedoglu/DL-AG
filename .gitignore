@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+
+# Models & checkpoints (too large for Git)
+models/
+dl_ag_*_model/
+layer2_model_*/
+pgd_sst2_robust_model/
+*.pt
+*.bin
+*.safetensors
+checkpoint-*/
+
+# Experiment outputs
+multiseed_results/
+multiseed_results_full/
+*.csv
+predictions.json
+*_scores.json
+full_robustness_scores.json
+spell_robustness_scores.json
+sst2_robustness_score.json
+
+# Colab / reviewer packs & internal notes
+*.zip
+dlag_hakem_*/
+_*.txt
+_*.pdf
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Images generated locally (optional; keep source scripts only)
+*.png
+!DL_AG_Layer2_Architecture.png
+training_script/Untitled

@@ -1,65 +1,53 @@
-# Adversarial GLUE dataset
+# Dual-Layer Adversarial Guard (DL-AG)
 
-This is the official code base for our NeurIPS 2021 paper (Dataset and benchmark track, Oral presentation, 3.3% accepted rate)
+Private research code for adversarial robustness in NLP (DistilBERT student + Layer-1 text repair).
 
-[Adversarial GLUE: A Multi-Task Benchmark for Robustness Evaluation of Language Models](https://arxiv.org/abs/2111.02840)
+## Setup
 
-
-Boxin Wang*, Chejian Xu*, Shuohang Wang, Zhe Gan, Yu Cheng, Jianfeng Gao, Ahmed Hassan Awadallah, Bo Li.
-
-## Citation
-
-```
-@inproceedings{wang2021adversarial,
-title={Adversarial GLUE: A Multi-Task Benchmark for Robustness Evaluation of Language Models},
-author={Wang, Boxin and Xu, Chejian and Wang, Shuohang and Gan, Zhe and Cheng, Yu and Gao, Jianfeng and Awadallah, Ahmed Hassan and Li, Bo},
-booktitle={Advances in Neural Information Processing Systems},
-year={2021}
-}
+```bash
+pip install -r requirements_dlag.txt
 ```
 
-## Getting Started
+## Core package
 
-We have built a few resources to help you get started with the dataset.
+- `dlag/` — Layer 1 repair, attacks, ARD helpers, data utilities
 
-Download a copy of the dataset in `dev.json` (distributed under the CC BY-SA 4.0 license).
+## Training
 
-To evaluate your models, we have also made available the evaluation script we will use for official evaluation, along with a sample prediction file that the script will take as input. To run the evaluation, use 
+- `train_ard.py` — Layer 2 robust distillation (ARD)
+- `train_mixed_balanced.py` — balanced mixed training
+- `train_layer2.py`, `train_distillation.py` — alternate training paths
 
+## Evaluation
+
+- `evaluator.py`, `final_validation.py`, `advglue_evaluate.py`
+- `evaluate_dlag_final.py`, `evaluate_adaptive_dlag.py`
+
+## Multi-seed (5 seeds: 42–46)
+
+Paper / reviewer protocol:
+
+```bash
+# Full DL-AG pipeline per seed (train + eval)
+python run_5seed_full.py
+
+# Lighter 5-seed runner (balanced model path)
+python run_5seed.py
+
+# Entire reviewer suite (DL-AG + baselines + ablations + stats)
+python run_reviewer_suite.py
+
+# Individual pieces
+python baselines_3seed.py
+python pkd_ablation_3seed.py
+python table9_ablation_3seed.py
+python stats_tests.py
 ```
-python evaluate.py <path_to_dev> <path_to_predictions>
-```
 
-Once you have a built a model that works to your expectations on the dev set, you submit it to get official scores on the dev and a hidden test set. To preserve the integrity of test results, we do not release the test set to the public. Instead, we require you to submit your model so that we can run it on the test set for you. Here's a [tutorial](https://worksheets.codalab.org/worksheets/0x023aaebc1cd74f3fb8eccc57643687dd/) walking you through official evaluation of your model.
+Colab: `DLAG_reviewer_5seed_colab.ipynb`, `run_colab_3seed_drive.py`
 
-## Data Format
+Checkpoints are written under `models/` (gitignored). Copy to Drive on Colab with `--save-root` / `--drive-root` flags in the runner scripts.
 
-File ```dev.json``` contains the dev data of AdvGLUE dataset. Each task forms a key-value pair inside the json object. The structure of the file should look like:
+## Upstream
 
-```
-{
-  "sst2": sst2_item_list,
-  "qqp": qqp_item_list,
-  "mnli": mnli_item_list,
-  "mnli-mm": mnli-mm_item_list,
-  "qnli": qnli_item_list,
-  "rte": rte_item_list
-}
-```
-
-Items in different tasks have different formats. The format of each task is listed below:
-
-  - **SST-2:** ```{'idx': index, 'label': label, 'sentence': text}```
-  - **QQP:** ```{'idx': index, 'label': label, 'question1': text, 'question2': text}```
-  - **MNLI:** ```{'idx': index, 'label': label, 'premise': text, 'hypothesis': text}```
-  - **QNLI:** ```{'idx': index, 'label': label, 'question': text, 'sentence': text}```
-  - **RTE:** ```{'idx': index, 'label': label, 'sentence1': text, 'sentence2': text}```
-
-
-## Human Evaluation
-
-We also provide the human evaluation scripts in the folder `human_eval/`.
-
-## Contact
-
-Ask us questions by creating GitHub issues or send emails at boxinw2@illinois.edu and xuchejian@zju.edu.cn.
+Based on the public [AdvGLUE](https://github.com/AI-secure/adversarial-glue) benchmark (`upstream` remote).
