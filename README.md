@@ -12,15 +12,10 @@ DL-AG is a two-stage defense for text classifiers:
 
 ---
 
-## Data availability (PeerJ)
-
-| Resource | Where |
-|----------|--------|
-| This code + experiment scripts | This repository (MIT) |
-| AdvGLUE / public benchmarks | Original sources (see [Upstream](#upstream)) |
-| Large checkpoints / generated CSVs | Reproducible via scripts below (artifacts are gitignored due to size) |
-
-An archival snapshot with a **Zenodo DOI** will be linked here for the accepted version.
+## Data
+- Code: this repository (MIT)
+- Benchmarks: original AdvGLUE / GLUE sources
+- Checkpoints: reproduce with the training scripts (large files are gitignored)
 
 ---
 
