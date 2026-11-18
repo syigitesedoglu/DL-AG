@@ -1,14 +1,32 @@
 # Dual-Layer Adversarial Guard (DL-AG)
 
-Private repository for paper experiments, the 5-seed protocol, and the reviewer suite.
+Open-source code for the paper **A Dual-Layer Adversarial Guard** (PeerJ Computer Science submission).
 
-**GitHub:** https://github.com/syigitesedoglu/DL-AG (private)
+**Repository:** https://github.com/syigitesedoglu/DL-AG  
+**License:** MIT  
+**Corresponding author:** Selçuk Yiğit ESEDOĞLU (`s.esedoglu@ogr.iuc.edu.tr`)
+
+DL-AG is a two-stage defense for text classifiers:
+- **Layer 1** — character/noise repair (Levenshtein search + language-model score)
+- **Layer 2** — robust distillation (RoBERTa-Large teacher → DistilBERT student) with ARD / Lipschitz-style regularization and feature alignment
+
+---
+
+## Data availability (PeerJ)
+
+| Resource | Where |
+|----------|--------|
+| This code + experiment scripts | This repository (MIT) |
+| AdvGLUE / public benchmarks | Original sources (see [Upstream](#upstream)) |
+| Large checkpoints / generated CSVs | Reproducible via scripts below (artifacts are gitignored due to size) |
+
+An archival snapshot with a **Zenodo DOI** will be linked here for the accepted version.
 
 ---
 
 ## Quick start
 
-Run all commands from the **repository root**.
+Run all commands from the **repository root** (GPU recommended).
 
 ```bash
 pip install -r requirements_dlag.txt
@@ -23,7 +41,7 @@ python scripts/multiseed/run_5seed_full.py
 python scripts/multiseed/run_reviewer_suite.py
 ```
 
-Colab: `notebooks/DLAG_reviewer_5seed_colab.ipynb`
+Colab notebook: `notebooks/DLAG_reviewer_5seed_colab.ipynb`
 
 ---
 
@@ -38,12 +56,14 @@ DL-AG/
 │   ├── evaluation/                # Testing & metrics
 │   ├── multiseed/                 # Orchestration (5 seeds)
 │   └── ablations/                 # Table / ablation experiments
-├── data/                          # Static data (dev.json, generated CSV)
+├── data/                          # Static data (dev.json; CSVs generated locally)
 ├── notebooks/                     # Colab notebooks
-├── models/                        # Checkpoints (gitignored)
+├── models/                        # Checkpoints (gitignored; created by training)
 ├── multiseed_results_full/        # JSON results (gitignored)
 ├── repo_paths.py                  # Shared path constants
-└── requirements_dlag.txt
+├── requirements_dlag.txt
+├── LICENSE
+└── CITATION.cff
 ```
 
 ---
@@ -60,41 +80,37 @@ DL-AG/
 
 ---
 
-## `scripts/data/`
+## Scripts
+
+### `scripts/data/`
 
 | Script | Purpose | Output |
 |--------|---------|--------|
 | `augment_data.py` | TextAttack embedding augmentation on SST-2 train | `data/sst2_augmented.csv` |
 
----
-
-## `scripts/training/`
+### `scripts/training/`
 
 | Script | Purpose | Checkpoints |
 |--------|---------|-------------|
 | `train_ard.py` | **Main paper path.** Teacher on clean text, student on adv text; ARD + optional Layer 1 | `models/dl_ag_student_distilbert/seed_{N}/` |
-| `train_mixed_balanced.py` | **Legacy path.** Mixed AdvGLUE + IMDB knowledge distillation | `dl_ag_balanced_model/seed_{N}/` |
+| `train_mixed_balanced.py` | Legacy mixed AdvGLUE + IMDB distillation | `dl_ag_balanced_model/seed_{N}/` |
 
 The paper and 5-seed suite use **`train_ard.py`**.
 
----
-
-## `scripts/evaluation/`
+### `scripts/evaluation/`
 
 | Script | Purpose |
 |--------|---------|
-| `evaluator.py` | Paper evaluator: attacks → Layer 1 → student; writes RA / ASR / latency JSON |
-| `final_validation.py` | Legacy validation for the balanced model (AdvGLUE + IMDB) |
+| `evaluator.py` | Paper evaluator: attacks → Layer 1 → student; RA / ASR / latency JSON |
+| `final_validation.py` | Legacy validation for the balanced model |
 
----
-
-## `scripts/multiseed/`
+### `scripts/multiseed/`
 
 | Script | Purpose |
 |--------|---------|
-| `run_5seed_full.py` | 5 seeds (42–46): `train_ard` → `evaluator`, mean ± std summary |
-| `run_5seed.py` | Legacy: `train_mixed_balanced` → `final_validation` |
-| `run_reviewer_suite.py` | Full pipeline: 5-seed DL-AG → baselines → PKD → Table 9 → t-tests |
+| `run_5seed_full.py` | 5 seeds (42–46): `train_ard` → `evaluator`, mean ± std |
+| `run_5seed.py` | Legacy balanced-model path |
+| `run_reviewer_suite.py` | Full pipeline: DL-AG → baselines → PKD → Table 9 → t-tests |
 
 **Reviewer suite order:**
 1. DL-AG (`run_5seed_full`)
@@ -103,18 +119,14 @@ The paper and 5-seed suite use **`train_ard.py`**.
 4. L1 / L2 / Hybrid ablation (`table9_ablation_3seed`)
 5. Welch t-test + 95% CI (`stats_tests`)
 
-On Colab with Google Drive: `--drive-root /content/drive/MyDrive/...`
+### `scripts/ablations/`
 
----
-
-## `scripts/ablations/`
-
-| Script | Paper reference |
-|--------|-----------------|
-| `baselines_3seed.py` | Table 11 — BERT-Base & DistilBERT fine-tuning |
-| `pkd_ablation_3seed.py` | Table 10 — Logit-Only vs PKD-Skip |
-| `table9_ablation_3seed.py` | Table 9 — L1-only / L2-only / Hybrid |
-| `stats_tests.py` | Reviewer statistics (Welch t-test, 95% CI) |
+| Script | Role |
+|--------|------|
+| `baselines_3seed.py` | BERT-Base & DistilBERT fine-tuning |
+| `pkd_ablation_3seed.py` | Logit-Only vs PKD-Skip |
+| `table9_ablation_3seed.py` | L1-only / L2-only / Hybrid |
+| `stats_tests.py` | Welch t-test, 95% CI |
 
 ---
 
@@ -122,8 +134,8 @@ On Colab with Google Drive: `--drive-root /content/drive/MyDrive/...`
 
 | File | Description |
 |------|-------------|
-| `dev.json` | AdvGLUE dev split (SST-2, etc.) — tracked in git |
-| `sst2_augmented.csv` | Output of `augment_data.py` — **gitignored**, generated locally |
+| `dev.json` | AdvGLUE-related dev split used in experiments — tracked in git |
+| `sst2_augmented.csv` | Output of `augment_data.py` — **gitignored**, generate locally |
 
 See also `data/README.md`.
 
@@ -131,22 +143,27 @@ See also `data/README.md`.
 
 ## Gitignored artifacts
 
-- `models/`, `dl_ag_*_model/` — model checkpoints
-- `multiseed_results/`, `multiseed_results_full/` — experiment JSON outputs
-- `data/*.csv` — large augmented dataset
-- `*.pt`, `*.zip`, internal notes
+- `models/`, `dl_ag_*_model/` — checkpoints (regenerate with training scripts)
+- `multiseed_results/`, `multiseed_results_full/` — experiment JSON
+- `data/*.csv` — large augmented datasets
+- `*.pt`, `*.bin`, `*.safetensors`
 
 ---
 
 ## Upstream
 
-AdvGLUE benchmark: https://github.com/AI-secure/adversarial-glue  
-Git remote: `upstream` (reference only — do not push there)
+- AdvGLUE: https://github.com/AI-secure/adversarial-glue  
+- Hugging Face model hubs used by `transformers` (DistilBERT, RoBERTa-Large, BERT-Base)
+
+---
+
+## Citation
+
+If you use this code, please cite the paper (citation details will be updated upon publication). Soft citation metadata is in `CITATION.cff`.
 
 ---
 
 ## Notes
 
-- Run scripts from the repo root; paths are resolved via `repo_paths.py`.
-- The repo can be made public after paper acceptance (aligned with our data-availability statement).
-- Collaborator access: GitHub → Settings → Collaborators.
+- Run scripts from the repo root; paths resolve via `repo_paths.py`.
+- Questions: corresponding author email above.

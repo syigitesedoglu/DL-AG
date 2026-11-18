@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Dual-Layer Adversarial Guard (DL-AG)"
+authors:
+  - family-names: "ESEDOĞLU"
+    given-names: "Selçuk Yiğit"
+  - family-names: "YAĞCI"
+    given-names: "Mehmet Yavuz"
+url: "https://github.com/syigitesedoglu/DL-AG"
+license: MIT
+abstract: >-
+  Code and experiment scripts for Dual-Layer Adversarial Guard (DL-AG):
+  Layer-1 Levenshtein/LM input repair and Layer-2 robust distillation
+  with a DistilBERT student.
+keywords:
+  - adversarial robustness
+  - knowledge distillation
+  - NLP
+  - AdvGLUE
