@@ -106,10 +106,10 @@ def main():
     score_imdb = accuracy_score(refs_imdb, preds_imdb) * 100
 
     print("\n" + "=" * 50)
-    print("DL-AG FINAL SCORECARD")
+    print("DL-AG evaluation summary")
     print("=" * 50)
-    print(f"AdvGLUE score (robustness)     : {score_adv:.2f}%")
-    print(f"IMDB score (generalization)    : {score_imdb:.2f}%")
+    print(f"AdvGLUE accuracy (robustness)  : {score_adv:.2f}%")
+    print(f"IMDB accuracy (generalization) : {score_imdb:.2f}%")
     print("-" * 50)
 
     result = {
@@ -124,26 +124,25 @@ def main():
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
-    print(f"Results saved: {out_path}")
+    print(f"Results written to: {out_path}")
 
-    success = True
-    if score_adv > 55:
-        print("PASS (attack): robustness above 55% target.")
+    meets_adv = score_adv > 55
+    meets_imdb = score_imdb > 80
+    if meets_adv:
+        print("AdvGLUE: meets the >55% robustness threshold.")
     else:
-        print("WARN (attack): robustness below 55% target.")
-        success = False
+        print("AdvGLUE: below the >55% robustness threshold.")
 
-    if score_imdb > 80:
-        print("PASS (language): IMDB generalization above 80% target.")
+    if meets_imdb:
+        print("IMDB: meets the >80% clean-accuracy threshold.")
     else:
-        print("WARN (language): possible catastrophic forgetting on clean text.")
-        success = False
+        print("IMDB: below the >80% clean-accuracy threshold (possible forgetting).")
 
     print("=" * 50)
-    if success:
-        print("RESULT: both robustness and clean-language targets met.")
+    if meets_adv and meets_imdb:
+        print("Summary: both evaluation thresholds are satisfied.")
     else:
-        print("RESULT: balance targets not fully met; inspect scores above.")
+        print("Summary: one or more thresholds are not satisfied; see scores above.")
 
 
 if __name__ == "__main__":

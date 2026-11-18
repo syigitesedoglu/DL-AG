@@ -162,10 +162,10 @@ def main():
     os.makedirs(save_path, exist_ok=True)
 
     print("=" * 60)
-    print("DL-AG BALANCED TRAINING")
+    print("DL-AG balanced training")
     print(f"Seed: {args.seed}")
-    print(f"Save: {save_path}")
-    print("Goal: stop attacks while preserving clean-language accuracy.")
+    print(f"Save path: {save_path}")
+    print("Objective: improve adversarial robustness with limited clean-accuracy loss.")
     print("=" * 60)
 
     tokenizer = AutoTokenizer.from_pretrained(STUDENT_MODEL_NAME)
@@ -234,7 +234,7 @@ def main():
             f,
             indent=2,
         )
-    print("Done. Evaluate this checkpoint on both AdvGLUE and IMDB.")
+    print("Training finished. Evaluate the checkpoint on AdvGLUE and IMDB.")
 
 
 if __name__ == "__main__":
